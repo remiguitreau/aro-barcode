@@ -18,12 +18,22 @@ public class XLSEquipmentsImporterTest {
 
     @Test
     public void test_equipment_import() {
-        final List<AroEquipment> equipments = importer.importEquipmentsFromInputStream(XLSEquipmentsImporterTest.class.getResourceAsStream("equipments_ok.xlsx"));
+        final ImportResult result = importer.importEquipmentsFromInputStream(XLSEquipmentsImporterTest.class.getResourceAsStream("equipments_ok.xlsx"));
 
-        Assert.assertEquals(14, equipments.size());
-        checkEquipements("Salomon", "120", 3, true, equipments);
-        checkEquipements("Salomon", "110", 5, true, equipments);
-        checkEquipements("Helmet", "XL", 6, false, equipments);
+        Assert.assertEquals(14, result.getEquipments().size());
+        checkEquipements("Salomon", "120", 3, true, result.getEquipments());
+        checkEquipements("Salomon", "110", 5, true, result.getEquipments());
+        checkEquipements("Helmet", "XL", 6, false, result.getEquipments());
+        Assert.assertTrue(result.getErrors().isEmpty());
+    }
+
+    @Test
+    public void test_equipment_import_with_some_bad_lines() {
+        final ImportResult result = importer.importEquipmentsFromInputStream(XLSEquipmentsImporterTest.class.getResourceAsStream("equipments_bad.xlsx"));
+
+        Assert.assertEquals(3, result.getEquipments().size());
+        checkEquipements("Salomon", "120", 3, true, result.getEquipments());
+        Assert.assertEquals(3, result.getErrors().size());
     }
 
     // -------------------------------------------------------------------------

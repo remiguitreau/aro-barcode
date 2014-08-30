@@ -4,14 +4,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JFileChooser;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 
 import lombok.extern.slf4j.Slf4j;
+import fr.remiguitreau.aroeven.barcode.xls.ImportResult;
 import fr.remiguitreau.aroeven.barcode.xls.XLSEquipmentsImporter;
 
 @Slf4j
@@ -39,22 +44,31 @@ public class AroBarcodeGeneratorLauncher {
             log.info("Barcode generation will be done from Excel file'{}'",
                     fileChooser.getSelectedFile().getName());
             try {
-                final List<AroEquipment> equipments = new XLSEquipmentsImporter().importEquipmentsFromInputStream(new FileInputStream(
+                final ImportResult result = new XLSEquipmentsImporter().importEquipmentsFromInputStream(new FileInputStream(
                         fileChooser.getSelectedFile()));
-                log.info("{} equipments have been imported !", equipments.size());
-                final File dir = new File("barcodes_"
-                        + new SimpleDateFormat("dd-MM-yyyy_HH.mm.ss").format(new Date()));
-                dir.mkdir();
-                final ProgressMonitor progressMonitor = new ProgressMonitor(null,
-                        "Génération des codes barres", "...", 1, equipments.size());
-                progressMonitor.setMillisToDecideToPopup(0);
-                int progress = 1;
-                for (final AroEquipment equipment : equipments) {
-                    log.info(" - {}", AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
-                    progressMonitor.setNote("Barcode " + progress + "/" + equipments.size() + " : "
-                            + AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
-                    progressMonitor.setProgress(progress++);
-                    barcodeGenerator.generateBarcode(dir, equipment);
+                log.info("{} equipments have been imported with {} erros !", result.getEquipments().size(),
+                        result.getErrors().size());
+                if (result.getErrors().isEmpty()
+                        || JOptionPane.showConfirmDialog(null, buildErrorsMessage(result.getErrors()),
+                                "Générer les codes barres malgré les erreurs ?", JOptionPane.YES_NO_OPTION,
+                                JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION) {
+
+                    final File dir = new File("barcodes_"
+                            + new SimpleDateFormat("dd-MM-yyyy_HH.mm.ss").format(new Date()));
+                    dir.mkdir();
+                    final ProgressMonitor progressMonitor = new ProgressMonitor(null,
+                            "Génération des codes barres", "...", 1, result.getEquipments().size());
+                    progressMonitor.setMillisToDecideToPopup(0);
+                    int progress = 1;
+                    for (final AroEquipment equipment : result.getEquipments()) {
+                        log.info(" - {}", AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
+                        progressMonitor.setNote("Barcode " + progress + "/" + result.getEquipments().size()
+                                + " : " + AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
+                        progressMonitor.setProgress(progress++);
+                        barcodeGenerator.generateBarcode(dir, equipment);
+                    }
+                } else {
+                    log.info("Génération annulée");
                 }
             } catch (final FileNotFoundException e) {
                 e.printStackTrace();
@@ -67,5 +81,15 @@ public class AroBarcodeGeneratorLauncher {
         } else {
             log.info("No file selected...");
         }
+    }
+
+    private static Object buildErrorsMessage(final Map<Integer, String> errors) {
+        final List<String> list = new ArrayList<>();
+        final List<Integer> lines = new ArrayList<>(errors.keySet());
+        Collections.sort(lines);
+        for (final int line : lines) {
+            list.add("Ligne '" + (line + 1) + "' : " + errors.get(line));
+        }
+        return new JList(list.toArray());
     }
 }

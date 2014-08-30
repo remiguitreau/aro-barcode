@@ -14,7 +14,7 @@ import fr.remiguitreau.aroeven.barcode.AroEquipment;
 @Slf4j
 public class XLSEquipmentsImporter {
 
-    public List<AroEquipment> importEquipmentsFromInputStream(final InputStream xlsInputStream) {
+    public ImportResult importEquipmentsFromInputStream(final InputStream xlsInputStream) {
         try {
             final XSSFWorkbook workbook = new XSSFWorkbook(xlsInputStream);
             final XSSFSheet equipmentSheet = workbook.getSheetAt(0);
@@ -28,14 +28,21 @@ public class XLSEquipmentsImporter {
 
     // -------------------------------------------------------------------------
 
-    private List<AroEquipment> extractEquipmentsFromSheet(final XSSFSheet equipmentSheet) {
+    private ImportResult extractEquipmentsFromSheet(final XSSFSheet equipmentSheet) {
         final List<AroEquipment> equipments = new ArrayList<AroEquipment>();
+        final ImportResult result = new ImportResult();
         log.info("Import equipments from line {} to {}", equipmentSheet.getFirstRowNum() + 2,
-                equipmentSheet.getLastRowNum());
+                equipmentSheet.getLastRowNum() + 1);
         for (int i = equipmentSheet.getFirstRowNum() + 1; i <= equipmentSheet.getLastRowNum(); i++) {
-            equipments.addAll(extractEquipmentsFromRow(equipmentSheet.getRow(i)));
+            try {
+                equipments.addAll(extractEquipmentsFromRow(equipmentSheet.getRow(i)));
+            } catch (final Exception ex) {
+                log.warn("Error on line " + i, ex);
+                result.getErrors().put(Integer.valueOf(i), ex.getMessage());
+            }
         }
-        return equipments;
+        result.setEquipments(equipments);
+        return result;
     }
 
     private List<AroEquipment> extractEquipmentsFromRow(final XSSFRow row) {
