@@ -6,7 +6,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 import fr.remiguitreau.aroeven.barcode.AroEquipment;
@@ -29,20 +31,37 @@ public class XLSEquipmentsImporter {
     // -------------------------------------------------------------------------
 
     private ImportResult extractEquipmentsFromSheet(final XSSFSheet equipmentSheet) {
-        final List<AroEquipment> equipments = new ArrayList<AroEquipment>();
+        final Map<String, List<AroEquipment>> equipmentsBySize = new HashMap<String, List<AroEquipment>>();
         final ImportResult result = new ImportResult();
         log.info("Import equipments from line {} to {}", equipmentSheet.getFirstRowNum() + 2,
                 equipmentSheet.getLastRowNum() + 1);
         for (int i = equipmentSheet.getFirstRowNum() + 1; i <= equipmentSheet.getLastRowNum(); i++) {
             try {
-                equipments.addAll(extractEquipmentsFromRow(equipmentSheet.getRow(i)));
+                for (final AroEquipment equipment : extractEquipmentsFromRow(equipmentSheet.getRow(i))) {
+                    addEquipmentToSize(equipmentsBySize, equipment);
+                }
             } catch (final Exception ex) {
                 log.warn("Error on line " + i, ex);
                 result.getErrors().put(Integer.valueOf(i), ex.getMessage());
             }
         }
+        final List<AroEquipment> equipments = new ArrayList<>();
+        for (final List<AroEquipment> list : equipmentsBySize.values()) {
+            for (final AroEquipment equipment : list) {
+                equipments.add(equipment);
+            }
+        }
         result.setEquipments(equipments);
         return result;
+    }
+
+    private void addEquipmentToSize(final Map<String, List<AroEquipment>> equipmentsBySize,
+            final AroEquipment equipment) {
+        if (!equipmentsBySize.containsKey(equipment.getSize())) {
+            equipmentsBySize.put(equipment.getSize(), new ArrayList<AroEquipment>());
+        }
+        equipment.setNumber(String.valueOf(equipmentsBySize.get(equipment.getSize()).size() + 1));
+        equipmentsBySize.get(equipment.getSize()).add(equipment);
     }
 
     private List<AroEquipment> extractEquipmentsFromRow(final XSSFRow row) {

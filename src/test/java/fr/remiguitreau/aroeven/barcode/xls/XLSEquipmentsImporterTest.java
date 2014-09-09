@@ -6,8 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.List;
-
 import fr.remiguitreau.aroeven.barcode.AroEquipment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -20,10 +18,26 @@ public class XLSEquipmentsImporterTest {
     public void test_equipment_import() {
         final ImportResult result = importer.importEquipmentsFromInputStream(XLSEquipmentsImporterTest.class.getResourceAsStream("equipments_ok.xlsx"));
 
-        Assert.assertEquals(14, result.getEquipments().size());
-        checkEquipements("Salomon", "120", 3, true, result.getEquipments());
-        checkEquipements("Salomon", "110", 5, true, result.getEquipments());
-        checkEquipements("Helmet", "XL", 6, false, result.getEquipments());
+        Assert.assertEquals(18, result.getEquipments().size());
+
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "110", "1", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "110", "2", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "110", "3", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "110", "4", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "110", "5", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Head", "110", "6", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Head", "110", "7", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Head", "110", "8", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Head", "110", "9", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "120", "1", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "120", "2", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "120", "3", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Helmet", "XL", "1", false)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Helmet", "XL", "2", false)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Helmet", "XL", "3", false)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Helmet", "XL", "4", false)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Helmet", "XL", "5", false)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Helmet", "XL", "6", false)));
         Assert.assertTrue(result.getErrors().isEmpty());
     }
 
@@ -32,17 +46,10 @@ public class XLSEquipmentsImporterTest {
         final ImportResult result = importer.importEquipmentsFromInputStream(XLSEquipmentsImporterTest.class.getResourceAsStream("equipments_bad.xlsx"));
 
         Assert.assertEquals(3, result.getEquipments().size());
-        checkEquipements("Salomon", "120", 3, true, result.getEquipments());
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "120", "1", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "120", "2", true)));
+        Assert.assertTrue(result.getEquipments().contains(new AroEquipment("Salomon", "120", "3", true)));
         Assert.assertEquals(3, result.getErrors().size());
     }
 
-    // -------------------------------------------------------------------------
-
-    private void checkEquipements(final String expectedBrand, final String expectedSize, final int number,
-            final boolean pair, final List<AroEquipment> equipments) {
-        for (int i = 1; i <= number; i++) {
-            Assert.assertTrue(equipments.contains(new AroEquipment(expectedBrand, expectedSize,
-                    String.valueOf(i), pair)));
-        }
-    }
 }
