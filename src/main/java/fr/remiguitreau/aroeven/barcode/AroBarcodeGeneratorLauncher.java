@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 
 import lombok.extern.slf4j.Slf4j;
+import fr.remiguitreau.aroeven.barcode.export.DocxBarcodeExporter;
 import fr.remiguitreau.aroeven.barcode.xls.ImportResult;
 import fr.remiguitreau.aroeven.barcode.xls.XLSEquipmentsImporter;
 
@@ -59,14 +60,21 @@ public class AroBarcodeGeneratorLauncher {
                     final ProgressMonitor progressMonitor = new ProgressMonitor(null,
                             "Génération des codes barres", "...", 1, result.getEquipments().size());
                     progressMonitor.setMillisToDecideToPopup(0);
-                    int progress = 1;
-                    for (final AroEquipment equipment : result.getEquipments()) {
-                        log.info(" - {}", AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
-                        progressMonitor.setNote("Barcode " + progress + "/" + result.getEquipments().size()
-                                + " : " + AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
-                        progressMonitor.setProgress(progress++);
-                        barcodeGenerator.generateBarcode(dir, equipment);
-                    }
+
+                    new DocxBarcodeExporter(barcodeGenerator).export(dir, result.getEquipments(),
+                            new BarcodeExportListener() {
+                                int progress = 1;
+
+                                @Override
+                                public void newAroBarcodeGenerate(final AroEquipment equipment) {
+                                    log.info(" - {}", AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
+                                    progressMonitor.setNote("Barcode " + progress + "/"
+                                            + result.getEquipments().size() + " : "
+                                            + AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
+                                    progressMonitor.setProgress(progress++);
+                                }
+
+                            });
                 } else {
                     log.info("Génération annulée");
                 }

@@ -9,8 +9,8 @@
 	<name>Aroeven :: Barcode generator</name>
 
 	<properties>
-		<slf4j.version>1.7.7</slf4j.version>
-		<poi.version>3.9</poi.version>
+		<slf4j.version>1.7.12</slf4j.version>
+		<poi.version>3.11</poi.version>
 	</properties>
 
 	<dependencies>
@@ -62,13 +62,13 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
-			<version>1.9.5</version>
+			<version>1.10.19</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -109,8 +109,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 		</plugins>

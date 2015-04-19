@@ -1,18 +1,20 @@
 package fr.remiguitreau.aroeven.barcode;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.krysalis.barcode4j.HumanReadablePlacement;
 import org.krysalis.barcode4j.impl.code39.Code39Bean;
 import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.krysalis.barcode4j.tools.UnitConv;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.IOException;
 
 public class AroBarcodeGenerator {
 
-    public void generateBarcode(final File rootFolder, final AroEquipment equipment) {
+    public byte[] generateBarcode(final AroEquipment equipment) {
         try {
             final Code39Bean bean = new Code39Bean();
             final String barcode = AroBarcodeUtils.buildBarcodeFromEquipment(equipment);
@@ -26,9 +28,10 @@ public class AroBarcodeGenerator {
             // pixel
             bean.setWideFactor(3);
             bean.doQuietZone(false);
+            bean.setMsgPosition(HumanReadablePlacement.HRP_NONE);
 
             // Open output file
-            final OutputStream out = new FileOutputStream(new File(rootFolder, barcode + ".png"));
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
             try {
                 // Set up the canvas provider for monochrome PNG output
                 final BitmapCanvasProvider canvas = new BitmapCanvasProvider(out, "image/x-png", dpi,
@@ -39,6 +42,7 @@ public class AroBarcodeGenerator {
 
                 // Signal end of generation
                 canvas.finish();
+                return out.toByteArray();
             } finally {
                 IOUtils.closeQuietly(out);
             }
@@ -48,8 +52,8 @@ public class AroBarcodeGenerator {
         }
     }
 
-    public static void main(final String[] args) {
-        new AroBarcodeGenerator().generateBarcode(new File("/tmp"), new AroEquipment("Salomon", "120", "15",
-                true));
+    public static void main(final String[] args) throws IOException {
+        FileUtils.writeByteArrayToFile(File.createTempFile("AroBarcodeTest", ".png"),
+                new AroBarcodeGenerator().generateBarcode(new AroEquipment("Salomon", "120", "15", true)));
     }
 }
