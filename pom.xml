@@ -76,6 +76,15 @@
 	<profiles>
 		<profile>
 			<id>installer</id>
+			<dependencies>
+				<dependency>
+					<groupId>com.sun.java</groupId>
+					<artifactId>jre</artifactId>
+					<version>1.8.0_25</version>
+					<type>zip</type>
+					<classifier>windows-x86</classifier>
+				</dependency>
+			</dependencies>
 			<build>
 				<plugins>
 					<plugin>

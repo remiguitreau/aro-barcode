@@ -99,6 +99,7 @@ public class DocxBarcodeExporter {
         r1.addBreak();
         r1.addPicture(DocxBarcodeExporter.class.getResourceAsStream("aroeven_470x199.png"),
                 XWPFDocument.PICTURE_TYPE_PNG, "aroeven", Units.toEMU(48), Units.toEMU(20)); // 200x200
+        r1.setFontSize(10);
         r1.setText(AroBarcodeUtils.buildBarcodeFromEquipment(equipment));
     }
 

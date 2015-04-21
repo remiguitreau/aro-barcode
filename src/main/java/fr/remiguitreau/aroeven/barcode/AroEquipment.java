@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AroEquipment {
 
-    private String brand;
+    private String type;
 
     private String size;
 
-    private String number;
+    private String identifier;
 
     private boolean pair;
 
