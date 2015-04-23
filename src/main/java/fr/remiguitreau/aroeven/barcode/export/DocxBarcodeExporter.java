@@ -10,6 +10,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell.XWPFVertAlign;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -34,31 +35,37 @@ public class DocxBarcodeExporter {
 
     public void export(final File rootFolder, final List<AroEquipment> equipments,
             final BarcodeExportListener barcodeExportListener) {
-        int i = 1;
+        int i = 0;
         try {
+            final XWPFDocument doc = new XWPFDocument(
+                    DocxBarcodeExporter.class.getResourceAsStream("model.docx"));
             while (!equipments.isEmpty()) {
-
-                final XWPFDocument doc = fillDoc(equipments, rootFolder, barcodeExportListener);
-                final FileOutputStream out = new FileOutputStream(new File(rootFolder, "arobarcodeExport_"
-                        + i++ + ".docx"));
-                doc.write(out);
-                out.close();
+                final CTTbl ctTbl = CTTbl.Factory.newInstance();
+                ctTbl.set(loadNewTable().getCTTbl());
+                final XWPFTable table = new XWPFTable(ctTbl, doc);
+                fillTable(table, equipments, rootFolder, barcodeExportListener);
+                if (i > 0) {
+                    doc.createParagraph();
+                    doc.createTable(); // Create a empty table in the document
+                }
+                doc.setTable(i, table); // Replace the empty table to table2
+                i++;
             }
+            final FileOutputStream out = new FileOutputStream(new File(rootFolder, "arobarcodeExport.docx"));
+            doc.write(out);
+            out.close();
         } catch (final Exception ex) {
             throw new AroBarcodeExportException(ex);
         }
     }
 
-    private XWPFDocument fillDoc(final List<AroEquipment> equipments, final File rootFolder,
+    private XWPFTable loadNewTable() throws IOException {
+        return new XWPFDocument(DocxBarcodeExporter.class.getResourceAsStream("model.docx")).getTables().get(
+                0);
+    }
+
+    private void fillTable(final XWPFTable table, final List<AroEquipment> equipments, final File rootFolder,
             final BarcodeExportListener barcodeExportListener) throws IOException, InvalidFormatException {
-        final XWPFDocument doc = new XWPFDocument(DocxBarcodeExporter.class.getResourceAsStream("model.docx"));
-        final XWPFTable table = doc.getTables().get(0);
-        // table.setCellMargins(5, 5, 5, 5);
-        // table cells have a list of paragraphs; there is an initial
-        // paragraph created when the cell is created. If you create a
-        // paragraph in the document to put in the cell, it will also
-        // appear in the document following the table, which is probably
-        // not the desired result.
         int row = 0;
         int col = 0;
         log.info("-------- Fill table");
@@ -81,8 +88,7 @@ public class DocxBarcodeExporter {
             }
             barcodeExportListener.newAroBarcodeGenerate(equipment);
             it.remove();
-        }// pixels
-        return doc;
+        }
     }
 
     private void fillCellWithBarcode(final XWPFTable table, final int row, final int col,
